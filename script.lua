@@ -1,151 +1,88 @@
--- MM2 Hub with Simple GUI
+-- MM2 Hub Console Version
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
--- متغيرات الحالة
 local speedOn = false
 local espOn = false
-local aimOn = false
 
--- إنشاء الـ GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "MM2Hub"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+print("╔════════════════════╗")
+print("║  YOSIF HUB MM2 V2  ║")
+print("╚════════════════════╝")
+print("")
+print("الأوامر:")
+print("1. /speed - تفعيل/تعطيل السرعة")
+print("2. /esp - تفعيل/تعطيل ESP")
+print("")
 
--- العنوان الرئيسي
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "Title"
-titleLabel.Size = UDim2.new(0, 300, 0, 50)
-titleLabel.Position = UDim2.new(0, 20, 0, 20)
-titleLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-titleLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-titleLabel.TextSize = 24
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.Text = "🩸 YOSIF HUB MM2"
-titleLabel.BorderSizePixel = 0
-titleLabel.Parent = screenGui
+-- معالج الأوامر
+game:GetService("Chat"):Chat(LocalPlayer.Character.Head, "Hub Ready!", Enum.ChatColor.Green)
 
--- زر السرعة
-local speedButton = Instance.new("TextButton")
-speedButton.Name = "SpeedButton"
-speedButton.Size = UDim2.new(0, 260, 0, 40)
-speedButton.Position = UDim2.new(0, 20, 0, 80)
-speedButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedButton.TextSize = 16
-speedButton.Font = Enum.Font.Gotham
-speedButton.Text = "⚡ السرعة: OFF"
-speedButton.BorderSizePixel = 0
-speedButton.Parent = screenGui
-
-speedButton.MouseButton1Click:Connect(function()
-    speedOn = not speedOn
-    speedButton.BackgroundColor3 = speedOn and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(50, 50, 50)
-    speedButton.Text = speedOn and "⚡ السرعة: ON" or "⚡ السرعة: OFF"
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.V then
+        speedOn = not speedOn
+        print(speedOn and "✅ السرعة: مفعلة" or "❌ السرعة: معطلة")
+    end
+    
+    if input.KeyCode == Enum.KeyCode.B then
+        espOn = not espOn
+        print(espOn and "✅ ESP: مفعل" or "❌ ESP: معطل")
+    end
 end)
 
--- زر الـ ESP
-local espButton = Instance.new("TextButton")
-espButton.Name = "ESPButton"
-espButton.Size = UDim2.new(0, 260, 0, 40)
-espButton.Position = UDim2.new(0, 20, 0, 130)
-espButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-espButton.TextSize = 16
-espButton.Font = Enum.Font.Gotham
-espButton.Text = "👁️ ESP: OFF"
-espButton.BorderSizePixel = 0
-espButton.Parent = screenGui
-
-espButton.MouseButton1Click:Connect(function()
-    espOn = not espOn
-    espButton.BackgroundColor3 = espOn and Color3.fromRGB(0, 100, 255) or Color3.fromRGB(50, 50, 50)
-    espButton.Text = espOn and "👁️ ESP: ON" or "👁️ ESP: OFF"
-end)
-
--- زر الـ Aim
-local aimButton = Instance.new("TextButton")
-aimButton.Name = "AimButton"
-aimButton.Size = UDim2.new(0, 260, 0, 40)
-aimButton.Position = UDim2.new(0, 20, 0, 180)
-aimButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-aimButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-aimButton.TextSize = 16
-aimButton.Font = Enum.Font.Gotham
-aimButton.Text = "🎯 Aim Bot: OFF"
-aimButton.BorderSizePixel = 0
-aimButton.Parent = screenGui
-
-aimButton.MouseButton1Click:Connect(function()
-    aimOn = not aimOn
-    aimButton.BackgroundColor3 = aimOn and Color3.fromRGB(255, 165, 0) or Color3.fromRGB(50, 50, 50)
-    aimButton.Text = aimOn and "🎯 Aim Bot: ON" or "🎯 Aim Bot: OFF"
-end)
-
--- زر الإغلاق
-local closeButton = Instance.new("TextButton")
-closeButton.Name = "CloseButton"
-closeButton.Size = UDim2.new(0, 260, 0, 40)
-closeButton.Position = UDim2.new(0, 20, 0, 230)
-closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextSize = 16
-closeButton.Font = Enum.Font.GothamBold
-closeButton.Text = "❌ إغلاق"
-closeButton.BorderSizePixel = 0
-closeButton.Parent = screenGui
-
-closeButton.MouseButton1Click:Connect(function()
-    screenGui:Destroy()
-end)
-
--- حلقة الخواص
+-- حلقة تنفيذ الخواص
 RunService.Heartbeat:Connect(function()
-    if LocalPlayer.Character then
-        -- السرعة
-        if speedOn and LocalPlayer.Character:FindFirstChild("Humanoid") then
+    if not LocalPlayer.Character then return end
+    
+    -- السرعة
+    if speedOn then
+        if LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid.WalkSpeed = 45
-        elseif LocalPlayer.Character:FindFirstChild("Humanoid") then
+        end
+    else
+        if LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid.WalkSpeed = 16
         end
-        
-        -- ESP
-        if espOn then
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character then
-                    local highlight = player.Character:FindFirstChild("ESPHighlight")
-                    if not highlight then
-                        highlight = Instance.new("Highlight")
-                        highlight.Name = "ESPHighlight"
-                        highlight.Parent = player.Character
-                        highlight.FillTransparency = 0.5
-                        highlight.OutlineTransparency = 0
-                    end
-                    
-                    local hasKnife = player.Backpack:FindFirstChild("Knife") or player.Character:FindFirstChild("Knife")
-                    local hasGun = player.Backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun")
-                    
-                    if hasKnife then
-                        highlight.FillColor = Color3.fromRGB(255, 0, 0)
-                    elseif hasGun then
-                        highlight.FillColor = Color3.fromRGB(0, 100, 255)
-                    else
-                        highlight.FillColor = Color3.fromRGB(0, 255, 100)
-                    end
+    end
+    
+    -- ESP
+    if espOn then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                local hl = player.Character:FindFirstChild("ESPHighlight")
+                if not hl then
+                    hl = Instance.new("Highlight")
+                    hl.Name = "ESPHighlight"
+                    hl.Parent = player.Character
+                    hl.FillTransparency = 0.4
+                    hl.OutlineTransparency = 0
                 end
+                
+                local knife = player.Backpack:FindFirstChild("Knife") or player.Character:FindFirstChild("Knife")
+                local gun = player.Backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun")
+                
+                if knife then
+                    hl.FillColor = Color3.fromRGB(255, 0, 0)
+                elseif gun then
+                    hl.FillColor = Color3.fromRGB(0, 100, 255)
+                else
+                    hl.FillColor = Color3.fromRGB(0, 255, 100)
+                end
+                hl.Enabled = true
             end
-        else
-            for _, player in pairs(Players:GetPlayers()) do
-                if player.Character then
-                    local highlight = player.Character:FindFirstChild("ESPHighlight")
-                    if highlight then highlight:Destroy() end
-                end
+        end
+    else
+        for _, player in pairs(Players:GetPlayers()) do
+            if player.Character then
+                local hl = player.Character:FindFirstChild("ESPHighlight")
+                if hl then hl:Destroy() end
             end
         end
     end
 end)
 
-print("✅ MM2 Hub مفعل - واجهة ظاهرة الآن!")
+print("✅ الكود شغال الآن!")
+print("اضغط V للسرعة")
+print("اضغط B للـ ESP")
