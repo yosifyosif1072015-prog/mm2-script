@@ -198,11 +198,8 @@ Tab:CreateButton({
                 if targetHRP then
                     hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 1)
                     task.wait(0.06)
-                    -- استدعاء تفعيل السكين إذا متاح
                     if type(knife.Activate) == "function" then
                         pcall(function() knife:Activate() end)
-                    else
-                        -- محاولة استخدام RemoteEvent أو غيرها (غير مضمونة)
                     end
                 end
             end
@@ -212,18 +209,16 @@ Tab:CreateButton({
     end
 })
 
--- Hook بسيط للأيمبوت الصامت عبر __namecall (قد يحتاج إلى دعم Exploit)
+-- Hook بسيط للأيمبوت الصامت عبر __namecall
 local OldNamecall
 OldNamecall = hookmetamethod(game, "__namecall", function(Self, ...)
     local Method = getnamecallmethod()
     local args = {...}
     if AimOn and Method == "FindPartOnRayWithIgnoreList" and not checkcaller() then
-        -- حاول إرجاع رأس أي لاعب عدو موجود
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
                 local isM = p.Backpack:FindFirstChild("Knife") or p.Character:FindFirstChild("Knife")
                 local isS = p.Backpack:FindFirstChild("Gun") or p.Character:FindFirstChild("Gun")
-                -- إذا كان لاعباً مميزاً (قاتل أو الشريف) أهدف إلى رأسه
                 if isM or isS then
                     return p.Character.Head, p.Character.Head.Position, Vector3.new(0,0,0), p.Character.Head.Material
                 end
@@ -235,19 +230,16 @@ end)
 
 -- حلقة الخادم التي تشغّل ESP والخواص
 RunService.Heartbeat:Connect(function()
-    -- سرعة
     if SpeedOn and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = 45
     end
 
-    -- ESP
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character then
             local haveKnife = p.Backpack:FindFirstChild("Knife") or p.Character:FindFirstChild("Knife")
             local haveGun = p.Backpack:FindFirstChild("Gun") or p.Character:FindFirstChild("Gun")
             local hl = getOrCreateHL(p.Character)
 
-            -- تحديد اللون وتمكين/تعطيل حسب الوضع
             if MurderESP and haveKnife then
                 hl.Enabled = true
                 hl.FillColor = Color3.fromRGB(255, 0, 0)
@@ -263,7 +255,5 @@ RunService.Heartbeat:Connect(function()
         end
     end
 end)
-
--- تنظيف عند إيقاف الـ GUI أو تعطيله: (اختياري) يمكن إضافة زر لإغلاق/تنظيف
 
 Rayfield:Notify({Title = "جاهز", Content = "YOSIF HUB | MM2 V23 جاهز للاستخدام.", Duration = 2})
