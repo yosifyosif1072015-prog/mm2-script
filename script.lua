@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 -- متغيرات الحالة
 local speedOn = true
@@ -8,6 +9,7 @@ local murdererESP = false
 local sheriffESP = false
 local innocentESP = false
 local aimBotOn = false
+local panelVisible = true
 
 -- إنشاء ScreenGui
 local gui = Instance.new("ScreenGui")
@@ -35,6 +37,33 @@ title.TextSize = 20
 title.Font = Enum.Font.GothamBold
 title.BorderSizePixel = 0
 title.Parent = panel
+
+-- زر إخفاء/إظهار اللوحة (صغير)
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "ToggleBtn"
+toggleBtn.Text = "◄"
+toggleBtn.Size = UDim2.new(0, 30, 0, 30)
+toggleBtn.Position = UDim2.new(1, 5, 0, 20)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.TextSize = 16
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.BorderSizePixel = 0
+toggleBtn.Parent = gui
+
+local isCollapsed = false
+toggleBtn.MouseButton1Click:Connect(function()
+    isCollapsed = not isCollapsed
+    if isCollapsed then
+        panel.Visible = false
+        toggleBtn.Text = "►"
+        toggleBtn.Position = UDim2.new(0, 20, 0, 20)
+    else
+        panel.Visible = true
+        toggleBtn.Text = "◄"
+        toggleBtn.Position = UDim2.new(1, 5, 0, 20)
+    end
+end)
 
 -- زر السرعة
 local speedBtn = Instance.new("TextButton")
@@ -119,7 +148,6 @@ teleportGunBtn.Parent = panel
 
 teleportGunBtn.MouseButton1Click:Connect(function()
     local gunPart = nil
-    -- البحث عن السلاح
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") and (obj.Name == "Gun" or obj.Name == "GunDrop" or obj.Name == "DroppedGun") then
             gunPart = obj
@@ -169,7 +197,47 @@ closeBtn.MouseButton1Click:Connect(function()
     gui:Destroy()
 end)
 
+-- Hook __namecall لـ Aim Bot الحقيقي
+local oldNamecall
+oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+    local args = {...}
+    local method = getnamecallmethod()
+    
+    if aimBotOn and method == "FindPartOnRayWithIgnoreList" then
+        -- البحث عن أقرب قاتل لديه سلاح
+        local closestMurderer = nil
+        local closestDistance = math.huge
+        local localHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        
+        if localHRP then
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character then
+                    local gun = player.Character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("Gun")
+                    if gun and player.Character:FindFirstChild("Head") then
+                        local distance = (player.Character.Head.Position - localHRP.Position).Magnitude
+                        if distance < closestDistance then
+                            closestDistance = distance
+                            closestMurderer = player
+                        end
+                    end
+                end
+            end
+        end
+        
+        if closestMurderer and closestMurderer.Character and closestMurderer.Character:FindFirstChild("Head") then
+            local targetHead = closestMurderer.Character.Head
+            local ray = Ray.new(args[1], args[2] * 1000)
+            local newRay = Ray.new(localHRP.Position, (targetHead.Position - localHRP.Position).Unit * 1000)
+            args[2] = newRay.Direction
+            return oldNamecall(self, unpack(args))
+        end
+    end
+    
+    return oldNamecall(self, unpack(args))
+end)
+
 -- حلقة التنفيذ الرئيسية
+local cameraSmoothing = 0.1 -- سرعة التحريك السلس
 RunService.Heartbeat:Connect(function()
     if not LocalPlayer.Character then return end
     
@@ -189,7 +257,6 @@ RunService.Heartbeat:Connect(function()
             local knife = character:FindFirstChild("Knife") or player.Backpack:FindFirstChild("Knife")
             local gun = character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("Gun")
             
-            -- إنشاء أو العثور على Highlight
             local highlight = character:FindFirstChild("MM2Highlight")
             if not highlight then
                 highlight = Instance.new("Highlight")
@@ -199,45 +266,48 @@ RunService.Heartbeat:Connect(function()
                 highlight.OutlineTransparency = 0
             end
             
-            -- تحديد اللون والتفعيل/التعطيل
             if knife and murdererESP then
                 highlight.Enabled = true
-                highlight.FillColor = Color3.fromRGB(255, 0, 0) -- أحمر للقاتل
+                highlight.FillColor = Color3.fromRGB(255, 0, 0)
             elseif gun and sheriffESP then
                 highlight.Enabled = true
-                highlight.FillColor = Color3.fromRGB(0, 100, 255) -- أزرق للشريف
+                highlight.FillColor = Color3.fromRGB(0, 100, 255)
             elseif not gun and not knife and innocentESP then
                 highlight.Enabled = true
-                highlight.FillColor = Color3.fromRGB(0, 255, 100) -- أخضر للمواطن
+                highlight.FillColor = Color3.fromRGB(0, 255, 100)
             else
                 highlight.Enabled = false
             end
         end
     end
     
-    -- Aim Bot - توجيه الكاميرا نحو أقرب لاعب
+    -- Aim Bot مع تحريك سلس للكاميرا
     if aimBotOn and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local closestPlayer = nil
+        local closestMurderer = nil
         local closestDistance = math.huge
         local hrp = LocalPlayer.Character.HumanoidRootPart
         
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-                local distance = (player.Character.Head.Position - hrp.Position).Magnitude
-                if distance < closestDistance then
-                    closestDistance = distance
-                    closestPlayer = player
+                local gun = player.Character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("Gun")
+                if gun then
+                    local distance = (player.Character.Head.Position - hrp.Position).Magnitude
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        closestMurderer = player
+                    end
                 end
             end
         end
         
-        if closestPlayer and closestPlayer.Character:FindFirstChild("Head") then
-            local targetHead = closestPlayer.Character.Head
-            -- توجيه الكاميرا
+        if closestMurderer and closestMurderer.Character:FindFirstChild("Head") then
+            local targetHead = closestMurderer.Character.Head
             local camera = workspace.CurrentCamera
-            camera.CFrame = CFrame.new(camera.CFrame.Position, targetHead.Position)
+            local targetCFrame = CFrame.new(camera.CFrame.Position, targetHead.Position)
+            camera.CFrame = camera.CFrame:Lerp(targetCFrame, cameraSmoothing)
         end
     end
 end)
 
 print("✅ MM2 Hub مفعل - جميع الميزات متاحة!")
+print("💡 اضغط على الزر ► لإخفاء اللوحة و ◄ لإظهارها")
