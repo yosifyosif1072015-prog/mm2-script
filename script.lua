@@ -1,102 +1,155 @@
-local P,LP,Cam,RS,TS=game:GetService("Players"),game:GetService("Players").LocalPlayer,workspace.CurrentCamera,game:GetService("RunService"),game:GetService("TweenService")
-local SG=Instance.new("ScreenGui",LP:WaitForChild("PlayerGui"))SG.ResetOnSpawn=false
+-- MM2 Luxury Vertical Hub V23 - Rayfield Touch Bypass Edition
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu'))()
 
-local MF=Instance.new("Frame",SG)
-MF.Name = "XenoPremiumMM2_Vertical"
-MF.Size=UDim2.new(0,160,0,260)
-MF.Position=UDim2.new(0.1,0,0.2,0)
-MF.BackgroundColor3=Color3.fromRGB(20,20,25);MF.Active=true;MF.Draggable=true
-Instance.new("UICorner",MF).CornerRadius=UDim.new(0,8)
+-- صناعة النافذة العمودية الفخمة والمحمية من حظر اللمس تماماً
+local Window = Rayfield:CreateWindow({
+   Name = "YOSIF HUB | MM2 V23 🩸",
+   LoadingTitle = "جاري تخطي حماية السيرفر...",
+   LoadingSubtitle = "by Yosif",
+   ConfigurationSaving = {
+      Enabled = false
+   },
+   Discord = {
+      Enabled = false
+   },
+   KeySystem = false -- إلغاء نظام المفاتيح المزعج لتفتح فوراً
+})
 
-local T=Instance.new("TextLabel",MF)
-T.Size=UDim2.new(1,0,0,35)T.BackgroundColor3=Color3.fromRGB(35,35,45)T.Text="XENO | MM2 V22 🩸"T.TextColor3=Color3.fromRGB(255,255,255)T.TextSize=13;T.Font=Enum.Font.SourceSansBold
+-- صناعة القائمة العمودية للميزات
+local Tab = Window:CreateTab("الميزات الرئيسية ⚡", 4483362458)
 
-local C=Instance.new("Frame",MF)
-C.Size=UDim2.new(1,-16,1,-45)C.Position=UDim2.new(0,8,0,40)C.BackgroundTransparency=1
-local L=Instance.new("UIListLayout",C)L.SortOrder=Enum.SortOrder.LayoutOrder;L.Padding=UDim.new(0,5)
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
 
-local function cB(t,cl)
-    local b=Instance.new("TextButton",C)
-    b.Size=UDim2.new(1,0,0,28)b.BackgroundColor3=cl;b.BorderSizePixel=0;b.Text=t;b.TextColor3=Color3.fromRGB(255,255,255)b.TextSize=12;b.Font=Enum.Font.SourceSansSemibold;b.Active=true;b.Selectable=true
-    Instance.new("UICorner",b).CornerRadius=UDim.new(0,5)
-    return b 
-end
+local MurderOn, SheriffOn, SpeedOn, AimOn = false, false, false, false
 
-local M,S,Sp,G,K,A=cB("👁️ كشف القاتل",Color3.fromRGB(40,40,45)),cB("👁️ كشف الشريف",Color3.fromRGB(40,40,45)),cB("⚡ السرعة العالية",Color3.fromRGB(40,40,45)),cB("🔫 جلب السلاح",Color3.fromRGB(45,60,110)),cB("🩸 قتل الجميع",Color3.fromRGB(150,40,40)),cB("🎯 أيمبوت صامت بالطلقة",Color3.fromRGB(40,40,45))
-local Mo,So,Spo,Ao,GunC=false,false,false,false,nil
+-- 1. كشف القاتل
+Tab:CreateToggle({
+   Name = "👁️ كشف القاتل (أحمر)",
+   CurrentValue = false,
+   Callback = function(Value)
+       MurderOn = Value
+       if not Value then
+           for _, p in pairs(Players:GetPlayers()) do
+               if p.Character and p.Character:FindFirstChild("XenoHl") then p.Character.XenoHl:Destroy() end
+           end
+       end
+    Downs = true end
+})
 
-local function act(b,f)
-    b.MouseButton1Click:Connect(f)
-    b.MouseButton1Down:Connect(f)
-    b.Activated:Connect(f)
-end
+-- 2. كشف الشريف
+Tab:CreateToggle({
+   Name = "👁️ كشف الشريف (أزرق)",
+   CurrentValue = false,
+   Callback = function(Value)
+       SheriffOn = Value
+       if not Value then
+           for _, p in pairs(Players:GetPlayers()) do
+               if p.Character and p.Character:FindFirstChild("XenoHl") then p.Character.XenoHl:Destroy() end
+           end
+       end
+   end
+})
 
-act(M,function()Mo=notMo;M.BackgroundColor3=Mo and Color3.fromRGB(180,40,40) or Color3.fromRGB(40,40,45)end)
-act(S,function()So=notSo;S.BackgroundColor3=So and Color3.fromRGB(40,100,180) or Color3.fromRGB(40,40,45)end)
-act(Sp,function()Spo=notSpo;Sp.BackgroundColor3=Spo and Color3.fromRGB(40,140,40) or Color3.fromRGB(40,40,45)end)
-act(A,function()Ao=notAo;A.Text=Ao and "🎯 الأيمبوت: مشغل ✅" or "🎯 أيمبوت صامت بالطلقة"A.BackgroundColor3=Ao and Color3.fromRGB(40,140,40) or Color3.fromRGB(40,40,45)end)
+-- 3. السرعة العالية
+Tab:CreateToggle({
+   Name = "⚡ تفعيل السرعة العالية (45)",
+   CurrentValue = false,
+   Callback = function(Value)
+       SpeedOn = Value
+       if not Value and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+           LocalPlayer.Character.Humanoid.WalkSpeed = 16
+       end
+   end
+})
 
-local function scanForGun()
-    local target = workspace:FindFirstChild("GunDrop") or workspace:FindFirstChild("DroppedGun")
-    if target then return target end
-    for _, o in pairs(workspace:GetDescendants()) do
-        if o:IsA("Model") and (o.Name == "GunDrop" or o.Name == "DroppedGun") then
-            return o:FindFirstChild("Gun") or o:FindFirstChildOfClass("Part") or o:FindFirstChildOfClass("MeshPart")
-        elseif o:IsA("Part") and (o.Name == "GunDrop" or o.Name == "DroppedGun") then
-            return o
-        end
-    end
-    return nil
-end
+-- 4. الأيمبوت الصامت بالطلقة
+Tab:CreateToggle({
+   Name = "🎯 الأيمبوت الصامت بالطلقة",
+   CurrentValue = false,
+   Callback = function(Value)
+       AimOn = Value
+   end
+})
 
-task.spawn(function()while true do GunC = scanForGun() task.wait(0.5) end end)
+-- 5. جلب السلاح المتساقط فورا
+Tab:CreateButton({
+   Name = "🔫 جلب والتقاط السلاح المتساقط",
+   Callback = function()
+       local targetGun = workspace:FindFirstChild("GunDrop") or workspace:FindFirstChild("DroppedGun")
+       if not targetGun then
+           for _, o in pairs(workspace:GetDescendants()) do
+               if o:IsA("Model") and (o.Name == "GunDrop" or o.Name == "DroppedGun") then
+                   targetGun = o:FindFirstChild("Gun") or o:FindFirstChildOfClass("Part") break
+               end
+           end
+       end
+       if targetGun and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+           LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+           LocalPlayer.Character.HumanoidRootPart.CFrame = targetGun.CFrame * CFrame.new(0, 0.2, 0)
+       else
+           Rayfield:Notify({Title = "خطأ", Content = "السلاح لم يسقط على الأرض بعد!", Duration = 2})
+       end
+   end
+})
 
-act(G,function()
-    GunC = scanForGun()
-    if GunC and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then 
-        local root = LP.Character.HumanoidRootPart
-        root.Velocity = Vector3.new(0,0,0)
-        root.CFrame = GunC.CFrame * CFrame.new(0, 0.2, 0)
-    else
-        G.Text = "❌ لم يسقط بعد"
-        task.wait(1)
-        G.Text = "🔫 جلب السلاح"
-    end 
-end)
+-- 6. قتل الجميع للقاتل
+Tab:CreateButton({
+   Name = "🩸 قتل الجميع فوراً (Kill All)",
+   Callback = function()
+       local knife = LocalPlayer.Character:FindFirstChild("Knife") or LocalPlayer.Backpack:FindFirstChild("Knife")
+       if knife then
+           knife.Parent = LocalPlayer.Character
+           local oldPos = LocalPlayer.Character.HumanoidRootPart.CFrame
+           for _, p in pairs(Players:GetPlayers()) do
+               if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character.Humanoid.Health > 0 then
+                   LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 1)
+                   task.wait(0.06)
+                   knife:Activate()
+                end
+           end
+           LocalPlayer.Character.HumanoidRootPart.CFrame = oldPos
+       else
+           Rayfield:Notify({Title = "خطأ", Content = "يجب أن تكون القاتل وتحمل السكين!", Duration = 2})
+       end
+   end
+})
 
-act(K,function()local k=LP.Character:FindFirstChild("Knife") or LP.Backpack:FindFirstChild("Knife")if k then k.Parent=LP.Character;local oP=LP.Character.HumanoidRootPart.CFrame;task.spawn(function()for _,p in pairs(P:GetPlayers()) do if p~=LP and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health>0 then LP.Character.HumanoidRootPart.CFrame=p.Character.HumanoidRootPart.CFrame*CFrame.new(0,0,1)task.wait(0.05)k:Activate()end end;LP.Character.HumanoidRootPart.CFrame=oP end)end end)
-
+-- ربط الأيمبوت الصامت المطور بالـ Namecall
 local OldNamecall;
 OldNamecall = hookmetamethod(game, "__namecall", function(Self, ...)
     local Method = getnamecallmethod()
-    if Ao and Method == "FindPartOnRayWithIgnoreList" and not checkcaller() then
-        for _, p in pairs(P:GetPlayers()) do
-            if p ~= LP and p.Character and p.Character:FindFirstChild("Head") then
+    if AimOn and Method == "FindPartOnRayWithIgnoreList" and not checkcaller() then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
                 local isM = p.Backpack:FindFirstChild("Knife") or p.Character:FindFirstChild("Knife")
-                if isM then
-                    return p.Character.Head, p.Character.Head.Position, Vector3.new(0,0,0), p.Character.Head.Material
-                end
+                if isM then return p.Character.Head, p.Character.Head.Position, Vector3.new(0,0,0), p.Character.Head.Material end
             end
         end
     end
     return OldNamecall(Self, ...)
 end)
 
-RS.Heartbeat:Connect(function()
-    if Spo and LP.Character and LP.Character:FindFirstChild("Humanoid") then LP.Character.Humanoid.WalkSpeed = 45 elseif LP.Character and LP.Character:FindFirstChild("Humanoid") then LP.Character.Humanoid.WalkSpeed = 16 end;
-    if Mo or So then 
-        for _,p in pairs(P:GetPlayers()) do 
-            if p~=LP and p.Character then 
-                local m,s=p.Backpack:FindFirstChild("Knife") or p.Character:FindFirstChild("Knife"), p.Backpack:FindFirstChild("Gun") or p.Character:FindFirstChild("Gun")
-                if (m and Mo) or (s and So) then 
-                    local h=p.Character:FindFirstChild("XenoHl") or Instance.new("Highlight",p.Character)
-                    h.Name="XenoHl"
-                    h.FillTransparency=0.5;h.Enabled=true;
-                    h.FillColor=m and Color3.fromRGB(255,0,0) or Color3.fromRGB(0,100,255)
-                else 
-                    local h=p.Character:FindFirstChild("XenoHl") if h then h.Enabled=false end 
-                end 
-            end 
-        end 
+-- حلقة الخدمات الخلفية السلسة وبدون لاق
+RunService.Heartbeat:Connect(function()
+    if SpeedOn and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = 45
+    end
+    if MurderOn or SheriffOn then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character then
+                local isM = p.Backpack:FindFirstChild("Knife") or p.Character:FindFirstChild("Knife")
+                local isS = p.Backpack:FindFirstChild("Gun") or p.Character:FindFirstChild("Gun")
+                if (isM and MurderOn) or (isS and SheriffOn) then
+                    local hl = p.Character:FindFirstChild("XenoHl") or Instance.new("Highlight", p.Character)
+                    hl.Name = "XenoHl" hl.FillTransparency = 0.5 hl.Enabled = true
+                    hl.FillColor = isM and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 100, 255)
+                else
+                    local hl = p.Character:FindFirstChild("XenoHl") if hl then hl.Enabled = false end
+                end
+            end
+        end
     end
 end)
