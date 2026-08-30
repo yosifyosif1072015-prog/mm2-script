@@ -1,5 +1,5 @@
 -- MM2 Luxury Vertical Hub V23 - Rayfield Touch Bypass Edition (محدث)
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu'))()
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source.lua'))()
 
 -- إنشاء النافذة
 local Window = Rayfield:CreateWindow({
