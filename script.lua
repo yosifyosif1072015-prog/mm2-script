@@ -1,313 +1,226 @@
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+-- ====================================================================
+--  XENO & GUTA PREMIUM VERTICAL HUB - MURDER MYSTERY 2 (2026 MIGRATED)
+-- ====================================================================
+-- هذا السكربت مخصص للرفع على GitHub أو التشغيل المباشر ككود طويل شامل.
+-- يحتوي على واجهة عمودية وأزرار تفاعلية منفصلة كلياً وصناديق إدخال أرقام.
 
--- متغيرات الحالة
-local speedOn = true
-local murdererESP = false
-local sheriffESP = false
-local innocentESP = false
-local aimBotOn = false
-local panelVisible = true
+local p = game.Players.LocalPlayer
+local pg = p:WaitForChild("PlayerGui")
 
--- إنشاء ScreenGui
-local gui = Instance.new("ScreenGui")
-gui.Name = "MM2Hub"
-gui.ResetOnSpawn = false
-gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+-- تنظيف أي واجهة قديمة لمنع التداخل أو تعليق الشاشة
+if pg:FindFirstChild("XenoVerticalHub") then 
+    pg.XenoVerticalHub:Destroy() 
+end
 
--- لوحة رئيسية
-local panel = Instance.new("Frame")
-panel.Name = "Panel"
-panel.Size = UDim2.new(0, 300, 0, 450)
-panel.Position = UDim2.new(0, 20, 0, 20)
-panel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-panel.BorderSizePixel = 2
-panel.BorderColor3 = Color3.fromRGB(255, 0, 0)
-panel.Parent = gui
+-- إنشاء الشاشة والقاعدة العمودية الملتصقة بيسار الشاشة (نفس مظهر الصورة)
+local sg = Instance.new("ScreenGui", pg)
+sg.Name = "XenoVerticalHub"
+sg.ResetOnSpawn = false
 
--- عنوان
-local title = Instance.new("TextLabel")
-title.Text = "🩸 MM2 HUB YOSIF"
-title.Size = UDim2.new(1, 0, 0, 50)
-title.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = 20
-title.Font = Enum.Font.GothamBold
-title.BorderSizePixel = 0
-title.Parent = panel
+local f = Instance.new("Frame", sg)
+f.Size = UDim2.new(0, 180, 0, 500) -- أبعاد عمودية نحيفة وطويلة لتسع الأزرار المنفصلة
+f.Position = UDim2.new(0, 15, 0, 120)
+f.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+f.BorderSizePixel = 2
+f.BorderColor3 = Color3.fromRGB(60, 60, 80)
+f.Active, f.Draggable = true, true
 
--- زر إخفاء/إظهار اللوحة (صغير)
-local toggleBtn = Instance.new("TextButton")
-toggleBtn.Name = "ToggleBtn"
-toggleBtn.Text = "◄"
-toggleBtn.Size = UDim2.new(0, 30, 0, 30)
-toggleBtn.Position = UDim2.new(1, 5, 0, 20)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleBtn.TextSize = 16
-toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.BorderSizePixel = 0
-toggleBtn.Parent = gui
+-- عنوان الواجهة الأعلى
+local t = Instance.new("TextLabel", f)
+t.Text = "XENO MM2 V5"
+t.Size = UDim2.new(1, 0, 0, 35)
+t.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+t.TextColor3 = Color3.fromRGB(255, 255, 255)
+t.Font = Enum.Font.SourceSansBold
+t.TextSize = 14
 
-local isCollapsed = false
-toggleBtn.MouseButton1Click:Connect(function()
-    isCollapsed = not isCollapsed
-    if isCollapsed then
-        panel.Visible = false
-        toggleBtn.Text = "►"
-        toggleBtn.Position = UDim2.new(0, 20, 0, 20)
-    else
-        panel.Visible = true
-        toggleBtn.Text = "◄"
-        toggleBtn.Position = UDim2.new(1, 5, 0, 20)
-    end
-end)
+-- ==========================================
+--  دوال التصميم وصناعة الأزرار المنفصلة
+-- ==========================================
 
--- زر السرعة
-local speedBtn = Instance.new("TextButton")
-speedBtn.Text = "⚡ السرعة: ON"
-speedBtn.Size = UDim2.new(1, -10, 0, 35)
-speedBtn.Position = UDim2.new(0, 5, 0, 60)
-speedBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-speedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedBtn.TextSize = 14
-speedBtn.Font = Enum.Font.Gotham
-speedBtn.BorderSizePixel = 0
-speedBtn.Parent = panel
-
-speedBtn.MouseButton1Click:Connect(function()
-    speedOn = not speedOn
-    speedBtn.BackgroundColor3 = speedOn and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(100, 100, 100)
-    speedBtn.Text = speedOn and "⚡ السرعة: ON" or "⚡ السرعة: OFF"
-end)
-
--- زر كشف القاتل (أحمر)
-local murdererBtn = Instance.new("TextButton")
-murdererBtn.Text = "👁️ كشف القاتل (أحمر)"
-murdererBtn.Size = UDim2.new(1, -10, 0, 35)
-murdererBtn.Position = UDim2.new(0, 5, 0, 105)
-murdererBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-murdererBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-murdererBtn.TextSize = 14
-murdererBtn.Font = Enum.Font.Gotham
-murdererBtn.BorderSizePixel = 0
-murdererBtn.Parent = panel
-
-murdererBtn.MouseButton1Click:Connect(function()
-    murdererESP = not murdererESP
-    murdererBtn.BackgroundColor3 = murdererESP and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(100, 100, 100)
-end)
-
--- زر كشف الشريف (أزرق)
-local sheriffBtn = Instance.new("TextButton")
-sheriffBtn.Text = "👁️ كشف الشريف (أزرق)"
-sheriffBtn.Size = UDim2.new(1, -10, 0, 35)
-sheriffBtn.Position = UDim2.new(0, 5, 0, 150)
-sheriffBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-sheriffBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-sheriffBtn.TextSize = 14
-sheriffBtn.Font = Enum.Font.Gotham
-sheriffBtn.BorderSizePixel = 0
-sheriffBtn.Parent = panel
-
-sheriffBtn.MouseButton1Click:Connect(function()
-    sheriffESP = not sheriffESP
-    sheriffBtn.BackgroundColor3 = sheriffESP and Color3.fromRGB(0, 100, 255) or Color3.fromRGB(100, 100, 100)
-end)
-
--- زر كشف المواطن (أخضر)
-local innocentBtn = Instance.new("TextButton")
-innocentBtn.Text = "👁️ كشف المواطن (أخضر)"
-innocentBtn.Size = UDim2.new(1, -10, 0, 35)
-innocentBtn.Position = UDim2.new(0, 5, 0, 195)
-innocentBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-innocentBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-innocentBtn.TextSize = 14
-innocentBtn.Font = Enum.Font.Gotham
-innocentBtn.BorderSizePixel = 0
-innocentBtn.Parent = panel
-
-innocentBtn.MouseButton1Click:Connect(function()
-    innocentESP = not innocentESP
-    innocentBtn.BackgroundColor3 = innocentESP and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(100, 100, 100)
-end)
-
--- زر الانتقال للسلاح
-local teleportGunBtn = Instance.new("TextButton")
-teleportGunBtn.Text = "🔫 انتقال للسلاح"
-teleportGunBtn.Size = UDim2.new(1, -10, 0, 35)
-teleportGunBtn.Position = UDim2.new(0, 5, 0, 240)
-teleportGunBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 0)
-teleportGunBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-teleportGunBtn.TextSize = 14
-teleportGunBtn.Font = Enum.Font.Gotham
-teleportGunBtn.BorderSizePixel = 0
-teleportGunBtn.Parent = panel
-
-teleportGunBtn.MouseButton1Click:Connect(function()
-    local gunPart = nil
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and (obj.Name == "Gun" or obj.Name == "GunDrop" or obj.Name == "DroppedGun") then
-            gunPart = obj
-            break
-        end
-    end
+-- دالة صناعة الأزرار العمودية بلون أحمر افتراضي وتتحول للأخضر عند الضغط
+local function makeBtn(txt, yPos, cb)
+    local b = Instance.new("TextButton", f)
+    b.Size = UDim2.new(0, 160, 0, 35)
+    b.Position = UDim2.new(0, 10, 0, yPos)
+    b.Text = txt
+    b.BackgroundColor3 = Color3.fromRGB(180, 35, 35) -- الأحمر المطلوب
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    b.Font = Enum.Font.SourceSansBold
+    b.TextSize = 12
+    b.BorderSizePixel = 0
     
-    if gunPart and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = gunPart.CFrame * CFrame.new(0, 3, 0)
-        print("✅ انتقلت للسلاح!")
-    else
-        print("❌ لم يتم إيجاد سلاح")
-    end
-end)
+    b.MouseButton1Click:Connect(function()
+        pcall(cb, b)
+    end)
+    return b
+end
 
--- زر Aim Bot
-local aimBotBtn = Instance.new("TextButton")
-aimBotBtn.Text = "🎯 Aim Bot: OFF"
-aimBotBtn.Size = UDim2.new(1, -10, 0, 35)
-aimBotBtn.Position = UDim2.new(0, 5, 0, 285)
-aimBotBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-aimBotBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-aimBotBtn.TextSize = 14
-aimBotBtn.Font = Enum.Font.Gotham
-aimBotBtn.BorderSizePixel = 0
-aimBotBtn.Parent = panel
+-- دالة صناعة صناديق الكتابة (TextBox) لإدخال أرقام السرعة والنطة
+local function makeTextBox(placeholder, defaultText, yPos)
+    local box = Instance.new("TextBox", f)
+    box.Size = UDim2.new(0, 160, 0, 30)
+    box.Position = UDim2.new(0, 10, 0, yPos)
+    box.PlaceholderText = placeholder
+    box.Text = defaultText
+    box.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    box.TextColor3 = Color3.fromRGB(255, 255, 255)
+    box.Font = Enum.Font.SourceSans
+    box.TextSize = 12
+    box.BorderSizePixel = 0
+    return box
+end
 
-aimBotBtn.MouseButton1Click:Connect(function()
-    aimBotOn = not aimBotOn
-    aimBotBtn.BackgroundColor3 = aimBotOn and Color3.fromRGB(255, 165, 0) or Color3.fromRGB(100, 100, 100)
-    aimBotBtn.Text = aimBotOn and "🎯 Aim Bot: ON" or "🎯 Aim Bot: OFF"
-end)
+-- ==========================================
+--  متغيرات حفظ الحالات والـ ESP
+-- ==========================================
+local actM, actS, actI = false, false, false
+local actSpeed, actJump, actInf, actNoclip = false, false, false, false
+local targetSpeed, targetJump = 50, 100
 
--- زر إغلاق
-local closeBtn = Instance.new("TextButton")
-closeBtn.Text = "❌ إغلاق"
-closeBtn.Size = UDim2.new(1, -10, 0, 35)
-closeBtn.Position = UDim2.new(0, 5, 0, 405)
-closeBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.TextSize = 14
-closeBtn.Font = Enum.Font.Gotham
-closeBtn.BorderSizePixel = 0
-closeBtn.Parent = panel
-
-closeBtn.MouseButton1Click:Connect(function()
-    gui:Destroy()
-end)
-
--- Hook __namecall لـ Aim Bot الحقيقي
-local oldNamecall
-oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-    local args = {...}
-    local method = getnamecallmethod()
-    
-    if aimBotOn and method == "FindPartOnRayWithIgnoreList" then
-        -- البحث عن أقرب قاتل لديه سلاح
-        local closestMurderer = nil
-        local closestDistance = math.huge
-        local localHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        
-        if localHRP then
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character then
-                    local gun = player.Character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("Gun")
-                    if gun and player.Character:FindFirstChild("Head") then
-                        local distance = (player.Character.Head.Position - localHRP.Position).Magnitude
-                        if distance < closestDistance then
-                            closestDistance = distance
-                            closestMurderer = player
-                        end
+-- دالة الكشف التلقائي للأدوار (ESP Highlights)
+local function runESP(role, color, state)
+    task.spawn(function()
+        while state do
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player ~= p and player.Character then
+                    local bp = player:FindFirstChild("Backpack")
+                    local char = player.Character
+                    local k = bp and (bp:FindFirstChild("Knife") or bp:FindFirstChild("DefaultKnife")) or (char:FindFirstChild("Knife") or char:FindFirstChild("DefaultKnife"))
+                    local g = bp and (bp:FindFirstChild("Gun") or bp:FindFirstChild("DefaultGun")) or (char:FindFirstChild("Gun") or char:FindFirstChild("DefaultGun"))
+                    local match = (role == "M" and k) or (role == "S" and g) or (role == "I" and not k and not g)
+                    
+                    if match and not char:FindFirstChild("X_"..role) then
+                        local hl = Instance.new("Highlight", char) 
+                        hl.Name = "X_"..role
+                        hl.FillColor = color
+                        hl.FillTransparency = 0.4
+                    elseif not match and char:FindFirstChild("X_"..role) then 
+                        char["X_"..role]:Destroy() 
                     end
                 end
             end
+            task.wait(1)
         end
-        
-        if closestMurderer and closestMurderer.Character and closestMurderer.Character:FindFirstChild("Head") then
-            local targetHead = closestMurderer.Character.Head
-            local ray = Ray.new(args[1], args[2] * 1000)
-            local newRay = Ray.new(localHRP.Position, (targetHead.Position - localHRP.Position).Unit * 1000)
-            args[2] = newRay.Direction
-            return oldNamecall(self, unpack(args))
+        -- تنظيف الكشافات عند إيقاف تشغيل الزر
+        for _, player in pairs(game.Players:GetPlayers()) do 
+            pcall(function() player.Character["X_"..role]:Destroy() end) 
         end
-    end
-    
-    return oldNamecall(self, unpack(args))
+    end)
+end
+
+-- ==========================================
+--  بناء ورص الأزرار العمودية بالكامل
+-- ==========================================
+
+-- 1. زر كشف القاتل المنفصل
+local bM = makeBtn("كشف القاتل فقط", 45, function()
+    actM = not actM
+    bM.BackgroundColor3 = actM and Color3.fromRGB(35, 180, 35) or Color3.fromRGB(180, 35, 35)
+    runESP("M", Color3.fromRGB(255, 0, 0), actM)
 end)
 
--- حلقة التنفيذ الرئيسية
-local cameraSmoothing = 0.1 -- سرعة التحريك السلس
-RunService.Heartbeat:Connect(function()
-    if not LocalPlayer.Character then return end
-    
-    -- السرعة
-    if LocalPlayer.Character:FindFirstChild("Humanoid") then
-        if speedOn then
-            LocalPlayer.Character.Humanoid.WalkSpeed = 100
-        else
-            LocalPlayer.Character.Humanoid.WalkSpeed = 16
-        end
+-- 2. زر كشف الشريف المنفصل
+local bS = makeBtn("كشف الشريف فقط", 85, function()
+    actS = not actS
+    bS.BackgroundColor3 = actS and Color3.fromRGB(35, 180, 35) or Color3.fromRGB(180, 35, 35)
+    runESP("S", Color3.fromRGB(0, 0, 255), actS)
+end)
+
+-- 3. زر كشف المواطنين المنفصل
+local bI = makeBtn("كشف المواطنين فقط", 125, function()
+    actI = not actI
+    bI.BackgroundColor3 = actI and Color3.fromRGB(35, 180, 35) or Color3.fromRGB(180, 35, 35)
+    runESP("I", Color3.fromRGB(0, 255, 0), actI)
+end)
+
+-- 4. زر الانتقال الفوري للسلاح الساقط
+makeBtn("انتقال للسلاح الساقط", 165, function()
+    local drop = workspace:FindFirstChild("GunDrop") or workspace:FindFirstChild("Gun")
+    if drop then 
+        p.Character.HumanoidRootPart.CFrame = drop.CFrame 
+    else
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "تنبيه السكربت",
+            Text = "الشريف حي والسلاح لم يسقط بعد!",
+            Duration = 3
+        })
     end
-    
-    -- ESP للاعبين
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            local character = player.Character
-            local knife = character:FindFirstChild("Knife") or player.Backpack:FindFirstChild("Knife")
-            local gun = character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("Gun")
-            
-            local highlight = character:FindFirstChild("MM2Highlight")
-            if not highlight then
-                highlight = Instance.new("Highlight")
-                highlight.Name = "MM2Highlight"
-                highlight.Parent = character
-                highlight.FillTransparency = 0.3
-                highlight.OutlineTransparency = 0
-            end
-            
-            if knife and murdererESP then
-                highlight.Enabled = true
-                highlight.FillColor = Color3.fromRGB(255, 0, 0)
-            elseif gun and sheriffESP then
-                highlight.Enabled = true
-                highlight.FillColor = Color3.fromRGB(0, 100, 255)
-            elseif not gun and not knife and innocentESP then
-                highlight.Enabled = true
-                highlight.FillColor = Color3.fromRGB(0, 255, 100)
-            else
-                highlight.Enabled = false
+end)
+
+-- 5. زر قتل الجميع إذا كنت القاتل
+makeBtn("قتل الجميع (القاتل)", 205, function()
+    local knife = p.Backpack:FindFirstChild("Knife") or p.Character:FindFirstChild("Knife")
+    if knife then
+        knife.Parent = p.Character
+        for _, enemy in pairs(game.Players:GetPlayers()) do
+            if enemy ~= p and enemy.Character and enemy.Character:FindFirstChild("HumanoidRootPart") then
+                p.Character.HumanoidRootPart.CFrame = enemy.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 1)
+                task.wait(0.12)
+                if knife:FindFirstChild("Stab") then knife.Stab:FireServer() end
             end
         end
     end
-    
-    -- Aim Bot مع تحريك سلس للكاميرا
-    if aimBotOn and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local closestMurderer = nil
-        local closestDistance = math.huge
-        local hrp = LocalPlayer.Character.HumanoidRootPart
-        
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-                local gun = player.Character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("Gun")
-                if gun then
-                    local distance = (player.Character.Head.Position - hrp.Position).Magnitude
-                    if distance < closestDistance then
-                        closestDistance = distance
-                        closestMurderer = player
-                    end
+end)
+
+-- 6. صندوق إدخال السرعة وزر التفعيل المنفصل
+local txSpeed = makeTextBox("اكتب السرعة هنا", "50", 250)
+local bSp = makeBtn("تفعيل السرعة", 285, function()
+    actSpeed = not actSpeed
+    bSp.BackgroundColor3 = actSpeed and Color3.fromRGB(35, 180, 35) or Color3.fromRGB(180, 35, 35)
+    targetSpeed = tonumber(txSpeed.Text) or 50
+end)
+
+-- 7. صندوق إدخال النطة وزر التفعيل المنفصل
+local txJump = makeTextBox("اكتب النطة هنا", "100", 325)
+local bJm = makeBtn("تفعيل النطة", 360, function()
+    actJump = not actJump
+    bJm.BackgroundColor3 = actJump and Color3.fromRGB(35, 180, 35) or Color3.fromRGB(180, 35, 35)
+    targetJump = tonumber(txJump.Text) or 100
+end)
+
+-- 8. زر تفعيل الانفنيتي جامب المنفصل
+local bIn = makeBtn("تفعيل انفنيتي جامب", 400, function()
+    actInf = not actInf
+    bIn.BackgroundColor3 = actInf and Color3.fromRGB(35, 180, 35) or Color3.fromRGB(180, 35, 35)
+end)
+
+-- 9. زر تفعيل اختراق الجدران المنفصل
+local bNc = makeBtn("تفعيل اختراق الجدار", 440, function()
+    actNoclip = not actNoclip
+    bNc.BackgroundColor3 = actNoclip and Color3.fromRGB(35, 180, 35) or Color3.fromRGB(180, 35, 35)
+end)
+
+-- ==========================================
+--  محرك تشغيل الميزات في الخلفية (Bypass)
+-- ==========================================
+
+-- حلقة فرض السرعة والنطة العالية واختراق الجدران بشكل مستمر
+game:GetService("RunService").Heartbeat:Connect(function()
+    pcall(function()
+        local char = p.Character
+        if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("HumanoidRootPart") then
+            -- تطبيق رقم السرعة المكتوب
+            char.Humanoid.WalkSpeed = actSpeed and targetSpeed or 16
+            
+            -- تطبيق رقم النطة المكتوب عند الضغط على مسافة
+            if actJump and game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
+                char.HumanoidRootPart.Velocity = Vector3.new(char.HumanoidRootPart.Velocity.X, targetJump, char.HumanoidRootPart.Velocity.Y)
+            end
+            
+            -- تطبيق اختراق الجدران (Noclip)
+            if actNoclip then
+                for _, part in pairs(char:GetChildren()) do 
+                    if part:IsA("BasePart") then part.CanCollide = false end 
                 end
             end
         end
-        
-        if closestMurderer and closestMurderer.Character:FindFirstChild("Head") then
-            local targetHead = closestMurderer.Character.Head
-            local camera = workspace.CurrentCamera
-            local targetCFrame = CFrame.new(camera.CFrame.Position, targetHead.Position)
-            camera.CFrame = camera.CFrame:Lerp(targetCFrame, cameraSmoothing)
-        end
-    end
+    end)
 end)
 
-print("✅ MM2 Hub مفعل - جميع الميزات متاحة!")
-print("💡 اضغط على الزر ► لإخفاء اللوحة و ◄ لإظهارها")
+-- تطبيق القفز اللانهائي (Infinity Jump)
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if actInf then 
+        pcall(function() p.Character.Humanoid:ChangeState("Jumping") end) 
+    end
+end)
